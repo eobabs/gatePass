@@ -8,35 +8,35 @@ import org.bytebuilders.estateManger.data.repositories.ResidentRepository;
 import org.bytebuilders.estateManger.dtos.requests.ResidentRequestDTO;
 import org.bytebuilders.estateManger.dtos.responses.ResidentResponseDTO;
 import org.bytebuilders.estateManger.utils.Mappers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class ResidentService {
+public class ResidentService implements ResidentServiceable {
+
+    @Autowired
     private final ResidentRepository residentRepository;
+    @Autowired
     private final HouseRepository houseRepository;
     private final Mappers mapper;
 
     @Transactional
     public ResidentResponseDTO registerResident(ResidentRequestDTO residentRequestDTO) {
-        // Validate input
+
         validateResidentRequest(residentRequestDTO);
 
-        // Create and save House
         House house = createHouse(residentRequestDTO);
         House savedHouse = houseRepository.save(house);
 
-        // Create and save Resident
         Resident resident = mapper.toResident(residentRequestDTO);
         resident.setHouse(savedHouse);
         Resident savedResident = residentRepository.save(resident);
 
-        // Update House with current resident
         savedHouse.setCurrentResident(savedResident);
         houseRepository.save(savedHouse);
 
-        // Convert and return response
         return mapper.toResidentResponseDTO(savedResident);
     }
 
